@@ -5,6 +5,13 @@
 # functions                                                                    #
 ################################################################################
 
+# Easily reload the bash source file
+rebash() {
+
+	source "${HOME}/.bashrc"
+
+}
+
 draw_line() {
 
 	local i
@@ -311,6 +318,12 @@ fi
 # personal customization options                                               #
 ################################################################################
 
+# For when networkmanager randomly breaks for no reason
+alias RestartNetwork="sudo service network-manager restart"
+
+# Don't use if you aren't me; it's probably broken anyway
+alias androidkernelbuildsetup="export PATH=/home/alex/Android/environment/aarch64-linux-android/bin:/home/alex/Android/bootimg_tools_7.8.13/:$PATH && export USE_CCACHE=1 && export SUBARCH=arm64 && export ARCH=arm64 && export CROSS_COMPILE=/home/alex/Android/environment/aarch64-linux-android/bin/aarch64-linux-android-"
+
 if [ ! -e "${HOME}/.bin" ]; then
 
 	# Make a .bin directory in the current user's home directory
@@ -359,6 +372,15 @@ if [ -e "${HOME}/.config/LS_COLORS" ]; then
 
 	eval "$(dircolors -b "${HOME}/.config/LS_COLORS")"
 
+else
+
+	printf "\n${PURPLE_LIGHT}Downloading extra list directory colors...${STANDARD}"
+	wget -q "https://raw.github.com/trapd00r/LS_COLORS/master/LS_COLORS" -O "${HOME}/.config/LS_COLORS"
+	printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}\n" && sleep 2
+	printf "${PURPLE_LIGHT}Reloading bash...${STANDARD}"
+	rebash
+	printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}\n\n"
+
 fi
 
 if [ -e "/usr/local/bin/ntfy" ]; then
@@ -383,12 +405,3 @@ elif [ "${NOTIFY_MISSING}" == "true" ]; then
 	printf "${WHITE}${BOLD}ntfy${STANDARD} is not installed. It is used to automatically notify you when long commands finish. You can install it with ${WHITE}${BOLD}sudo pip3 install ntfy${STANDARD}.\n"
 
 fi
-
-# For when networkmanager randomly breaks for no reason
-alias RestartNetwork="sudo service network-manager restart"
-
-# Easily reload the bash source file
-alias rebash='source ${HOME}/.bashrc'
-
-# Don't use if you aren't me; it's probably broken anyway
-alias androidkernelbuildsetup="export PATH=/home/alex/Android/environment/aarch64-linux-android/bin:/home/alex/Android/bootimg_tools_7.8.13/:$PATH && export USE_CCACHE=1 && export SUBARCH=arm64 && export ARCH=arm64 && export CROSS_COMPILE=/home/alex/Android/environment/aarch64-linux-android/bin/aarch64-linux-android-"
