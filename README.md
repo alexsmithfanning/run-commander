@@ -27,3 +27,5 @@ But, with the color aliases, it becomes much easier and so much more readable:
 ```bash
 printf "${PURPLE}This text is purple.${STANDARD}\n"
 ```
+
+## Stay tuned for more readme at some point in the future
