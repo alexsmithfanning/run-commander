@@ -51,7 +51,7 @@ colortest() {
             echo # New line
 
         done
-		
+
 
 	else
 
@@ -324,14 +324,14 @@ else
 
 fi
 
-if [ ! -e "${HOME}/.cargo/bin" ] && [ "${NOTIFY_MISSING}" == "true" ]; then
-
-	printf "${WHITE}${BOLD}rust${STANDARD} or its package manager ${WHITE}${BOLD}cargo${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install rustc${STANDARD} or using ${WHITE}${BOLD}rustup${STANDARD}.\n"
-
-else
+if [ -e "${HOME}/.cargo/bin" ]; then
 
 	# Add Rust's cargo directory to the PATH
 	PATH="${PATH}:${HOME}/.cargo/bin"
+
+elif [ "${NOTIFY_MISSING}" == "true" ]; then
+
+	printf "${WHITE}${BOLD}rust${STANDARD} or its package manager ${WHITE}${BOLD}cargo${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install rustc${STANDARD} or using ${WHITE}${BOLD}rustup${STANDARD}.\n"
 
 fi
 
@@ -344,14 +344,14 @@ fi
 # Don't check mail when opening terminal.
 unset MAILCHECK
 
-if [ ! -e "/usr/bin/thefuck" ] && [ "${NOTIFY_MISSING}" == "true" ]; then
-
-	printf "${WHITE}${BOLD}thefuck${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install thefuck${STANDARD}.\n"
-
-else
+if [ -e "/usr/bin/thefuck" ]; then
 
 	# Make sure thefuck works like intended. This is REQUIRED for thefuck to work.
 	eval "$(thefuck --alias)"
+
+elif [ "${NOTIFY_MISSING}" == "true" ]; then
+
+	printf "${WHITE}${BOLD}thefuck${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install thefuck${STANDARD}.\n"
 
 fi
 
@@ -361,28 +361,28 @@ if [ -e "${HOME}/.config/LS_COLORS" ]; then
 
 fi
 
-#if [ ! -e "/usr/local/bin/ntfy" ] && [ "${NOTIFY_MISSING}" == "true" ]; then
+if [ -e "/usr/local/bin/ntfy" ]; then
 
-#	printf "${WHITE}${BOLD}ntfy${STANDARD} is not installed. It is used to automatically notify you when long commands finish. You can install it with ${WHITE}${BOLD}sudo pip3 install ntfy${STANDARD}.\n"
-
-#else
-
-#	export AUTO_NTFY_DONE_LONGER_THAN=-L10
-#	export AUTO_NTFY_DONE_UNFOCUSED_ONLY=-b
+	export AUTO_NTFY_DONE_LONGER_THAN=-L10
+	export AUTO_NTFY_DONE_UNFOCUSED_ONLY=-b
 
 	# Adds zsh-like preexec fuctionality to bash
-#	. "${HOME}/.local/share/ntfy/bash-preexec.sh"
+	. "${HOME}/.local/share/ntfy/bash-preexec.sh"
 
 	# Required for the auto-done feature
-#	. "${HOME}/.local/share/ntfy/auto-ntfy-done.sh"
+	. "${HOME}/.local/share/ntfy/auto-ntfy-done.sh"
 
 	# Add more than the default ntfy ignore options here
-#	export AUTO_NTFY_DONE_IGNORE="micro"
+	export AUTO_NTFY_DONE_IGNORE="micro"
 
 	# Enables ntfy's shell integration
-#	eval "$(ntfy shell-integration)"
+	eval "$(ntfy shell-integration)"
 
-#fi
+elif [ "${NOTIFY_MISSING}" == "true" ]; then
+
+	printf "${WHITE}${BOLD}ntfy${STANDARD} is not installed. It is used to automatically notify you when long commands finish. You can install it with ${WHITE}${BOLD}sudo pip3 install ntfy${STANDARD}.\n"
+
+fi
 
 # For when networkmanager randomly breaks for no reason
 alias RestartNetwork="sudo service network-manager restart"
