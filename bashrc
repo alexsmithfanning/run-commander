@@ -2,13 +2,58 @@
 # shellcheck disable=SC2059
 
 ################################################################################
-# functions                                                                    #
+# functions and other stuff that needs to be first                             #
 ################################################################################
+
+# Update the root account's .bashrc easily
+# may be used for other things in the future
+update() {
+
+	case "${1}" in
+
+	"root" | "ROOT" )
+	
+		if [[ ! ${EUID} -ne 0 ]]; then
+
+			printf "\n${RED}${BOLD}Your request has been ignored because you are currently root.${STANDARD}\n\n"
+
+		else
+
+			sudo -E cp -f "${HOME}/.bashrc" "/root/.bashrc"
+			printf "\n${GREEN_LIGHT}${BOLD}The root account's bash configuration has been updated.${STANDARD}\n\n"
+
+		fi
+
+	;;
+
+	"ls_colors" | "LS_COLORS" | "ls-colors" | "LS-COLORS" )
+
+		# TODO
+
+	;;
+
+	"" )
+
+		printf "\n${RED}${BOLD}You must specify an argument.${STANDARD}\n\n"
+
+	;;
+
+	* )
+
+		printf "\n${WHITE}${BOLD}${1}${STANDARD}${RED}${BOLD} is not a valid argument.${STANDARD}\n\n"
+
+	;;
+
+	esac
+
+}
 
 # Easily reload the bash source file
 rebash() {
 
+	printf "\n${PURPLE_LIGHT}Reloading bash...${STANDARD}"
 	source "${HOME}/.bashrc"
+	printf "${GREEN_LIGHT}${BOLD} DONE${STANDARD}.\n\n"
 
 }
 
@@ -117,6 +162,8 @@ if [ ! -e "${HOME}/.config/bashrc.config" ]; then
 	chmod +x "${HOME}/.config/bashrc.config"
 	printf "# Change the value below to false to supress startup notifications\n" >> "${HOME}/.config/bashrc.config"
 	printf "NOTIFY_MISSING=true" >> "${HOME}/.config/bashrc.config"
+	printf "\n# Want bash to insult you like the failure you are? Set this to true.\n" >> "${HOME}/.config/bashrc.config"
+	printf "ENABLE_INSULTS=false" >> "${HOME}/.config/bashrc.config"
 
 	draw_line
 	printf "\n\n${PURPLE_LIGHT}To disable notifications for missing programs,\n"
@@ -125,7 +172,14 @@ if [ ! -e "${HOME}/.config/bashrc.config" ]; then
 
 fi
 
+# Source the configuration file
 . "${HOME}/.config/bashrc.config"
+
+if [[ ! ${EUID} -ne 0 ]]; then
+
+	printf "\n${RED}${BOLD}WARNING:${STANDARD}${WHITE}${BOLD} You are using the root account. It is possible to do irrecoverable damage to your system.${STANDARD}\n\n"
+
+fi
 
 ################################################################################
 # default ubuntu configuration options                                         #
@@ -310,7 +364,7 @@ if [ -e "/usr/bin/hh" ]; then
 
 elif [ "${NOTIFY_MISSING}" == "true" ]; then
 
-	printf "${WHITE}${BOLD}hstr${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}sudo add-apt-repository ppa:ultradvorka/ppa && sudo apt-get update && sudo apt-get install hh${STANDARD}.\n"
+	printf "\n${WHITE}${BOLD}hstr${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}sudo add-apt-repository ppa:ultradvorka/ppa && sudo apt-get update && sudo apt-get install hh${STANDARD}.\n\n"
 
 fi
 
@@ -328,7 +382,7 @@ if [ ! -e "${HOME}/.bin" ]; then
 
 	# Make a .bin directory in the current user's home directory
 	mkdir "${HOME}/.bin"
-	printf "\n${WHITE}${BOLD}${HOME}/.bin${STANDARD} was not found, so it has been created."
+	printf "\n${WHITE}${BOLD}${HOME}/.bin${STANDARD} was not found, so it has been created.\n\n"
 
 else
 
@@ -344,7 +398,7 @@ if [ -e "${HOME}/.cargo/bin" ]; then
 
 elif [ "${NOTIFY_MISSING}" == "true" ]; then
 
-	printf "${WHITE}${BOLD}rust${STANDARD} or its package manager ${WHITE}${BOLD}cargo${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install rustc${STANDARD} or using ${WHITE}${BOLD}rustup${STANDARD}.\n"
+	printf "\n${WHITE}${BOLD}rust${STANDARD} or its package manager ${WHITE}${BOLD}cargo${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install rustc${STANDARD} or using ${WHITE}${BOLD}rustup${STANDARD}.\n\n"
 
 fi
 
@@ -364,7 +418,7 @@ if [ -e "/usr/bin/thefuck" ]; then
 
 elif [ "${NOTIFY_MISSING}" == "true" ]; then
 
-	printf "${WHITE}${BOLD}thefuck${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install thefuck${STANDARD}.\n"
+	printf "\n${WHITE}${BOLD}thefuck${STANDARD} is not installed. You can install it with ${WHITE}${BOLD}apt install thefuck${STANDARD}.\n\n"
 
 fi
 
@@ -377,7 +431,6 @@ else
 	printf "\n${PURPLE_LIGHT}Downloading extra list directory colors...${STANDARD}"
 	wget -q "https://raw.github.com/trapd00r/LS_COLORS/master/LS_COLORS" -O "${HOME}/.config/LS_COLORS"
 	printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}\n" && sleep 2
-	printf "${PURPLE_LIGHT}Reloading bash...${STANDARD}"
 	rebash
 	printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}\n\n"
 
@@ -388,6 +441,9 @@ if [ -e "/usr/local/bin/ntfy" ]; then
 	export AUTO_NTFY_DONE_LONGER_THAN=-L10
 	export AUTO_NTFY_DONE_UNFOCUSED_ONLY=-b
 
+	# Enables ntfy's shell integration
+	eval "$(ntfy shell-integration)"
+
 	# Adds zsh-like preexec fuctionality to bash
 	. "${HOME}/.local/share/ntfy/bash-preexec.sh"
 
@@ -397,11 +453,29 @@ if [ -e "/usr/local/bin/ntfy" ]; then
 	# Add more than the default ntfy ignore options here
 	export AUTO_NTFY_DONE_IGNORE="micro"
 
-	# Enables ntfy's shell integration
-	eval "$(ntfy shell-integration)"
-
 elif [ "${NOTIFY_MISSING}" == "true" ]; then
 
 	printf "${WHITE}${BOLD}ntfy${STANDARD} is not installed. It is used to automatically notify you when long commands finish. You can install it with ${WHITE}${BOLD}sudo pip3 install ntfy${STANDARD}.\n"
+
+fi
+
+if [ "${ENABLE_INSULTS}" == "true" ]; then
+
+	if [ ! -f "${HOME}/.config/bashrc.insults" ]; then
+
+		printf "\n${PURPLE_LIGHT}Downloading insults...${STANDARD}"
+		wget -q "https://raw.githubusercontent.com/hkbakke/bash-insulter/master/src/bash.command-not-found" -O "${HOME}/.config/bashrc.insults"
+		printf "${GREEN_LIGHT}${BOLD} DONE${STANDARD}.\n" && sleep 2
+		rebash
+
+	fi
+
+	. "${HOME}/.config/bashrc.insults"
+
+fi
+
+if [ -d "${HOME}/.qfc" ]; then
+
+	. "${HOME}/.qfc/bin/qfc.sh"
 
 fi
