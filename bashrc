@@ -2,8 +2,58 @@
 # shellcheck disable=SC2059
 
 ################################################################################
+# bash color output aliases                                                    #
+################################################################################
+
+BLACK='\e[38;5;16m'
+RED='\e[38;5;1m'
+GREEN='\e[38;5;2m'
+ORANGE='\e[38;5;214m'
+BLUE='\e[38;5;12m'
+BLUE_DARK='\e[38;5;4m'
+PINK='\e[38;5;5m'
+PURPLE='\e[38;5;93m'
+CYAN='\e[38;5;51m'
+GRAY_LIGHT='\e[38;5;188m'
+GRAY='\e[38;5;244m'
+GRAY_DARK='\e[38;5;248m'
+GREEN_LIGHT='\e[38;5;120m'
+YELLOW='\e[38;5;11m'
+YELLOW_LIGHT='\e[38;5;229m'
+BLUE_LIGHT='\e[38;5;14m'
+PURPLE_LIGHT='\e[38;5;177m'
+CYAN_LIGHT='\e[38;5;195m'
+WHITE='\e[38;5;15m'
+STANDARD=$(tput sgr0)
+BOLD='\e[1m'
+ITALIC='\e[3m'
+UNDERLINE='\e[4m'
+STRIKE='\e[9m'
+BLINK='\e[5m'
+DIM='\e[2m'
+
+################################################################################
 # functions and other stuff that needs to be first                             #
 ################################################################################
+
+warn_root() {
+
+	if [[ ! ${EUID} -ne 0 ]]; then
+
+		printf "\n${RED}${BOLD}WARNING:${STANDARD}${WHITE}${BOLD} You are using the root account. It is possible to do irrecoverable damage to your system.${STANDARD}\n\n"
+
+	fi
+
+}
+
+# Easily reload the bash source file
+rebash() {
+
+	printf "\n${PURPLE_LIGHT}Reloading bash...${STANDARD}"
+	source "${HOME}/.bashrc" &> /dev/null
+	printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}\n\n"
+
+}
 
 # Update the root account's .bashrc easily
 # may be used for other things in the future
@@ -12,7 +62,7 @@ update() {
 	case "${1}" in
 
 	"root" | "ROOT" )
-	
+
 		if [[ ! ${EUID} -ne 0 ]]; then
 
 			printf "\n${RED}${BOLD}Your request has been ignored because you are currently root.${STANDARD}\n\n"
@@ -32,6 +82,52 @@ update() {
 
 	;;
 
+	"install" | "INSTALL" )
+
+		local SCRIPTNAME=$(basename "${0}")
+		local BACKUPDIR="${HOME}/.config/run-commander/backups"
+		local BACKUPFILE="${BACKUPDIR}/bashrc.bak"
+
+		if [ "${SCRIPTNAME}" == "bash" ]; then
+
+			printf "\n${RED}${BOLD}You must run this file as a script to install it. Do not source it.${STANDARD}\n"
+			printf "${RED}${BOLD}Or, you've named this script ${WHITE}${BOLD}bash${STANDARD}${RED}${BOLD}.${STANDARD}\n\n"
+
+		fi
+
+		mkdir -p "${BACKUPDIR}/"
+
+		printf "\n${PURPLE_LIGHT}Backing up the old file...${STANDARD}"
+
+		# Don't overwrite old backups
+		if [[ -e "${BACKUPFILE}" ]]; then
+
+			local i="0"
+			while [[ -e "${BACKUPFILE}.${i}" ]]; do
+
+				# Increment i by one until the file doesn't exist
+				let i++
+
+			done
+
+			local BACKUPFILE="${BACKUPDIR}/bashrc.bak.${i}"
+
+			cp -f "${HOME}/.bashrc" "${BACKUPFILE}"
+
+		else
+
+			cp -f "${HOME}/.bashrc" "${BACKUPFILE}"
+
+		fi
+
+		printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}"
+		printf "\n${PURPLE_LIGHT}Installing this file to ${WHITE}${HOME}/.bashrc${PURPLE_LIGHT}...${STANDARD}"
+		cp -f "${PWD}/${SCRIPTNAME}" "${HOME}/.bashrc"
+		printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}"
+		rebash
+
+	;;
+
 	"" )
 
 		printf "\n${RED}${BOLD}You must specify an argument.${STANDARD}\n\n"
@@ -48,14 +144,14 @@ update() {
 
 }
 
-# Easily reload the bash source file
-rebash() {
+# Check if trying to install the script
+if [ "${1}" == "install" ]; then
 
-	printf "\n${PURPLE_LIGHT}Reloading bash...${STANDARD}"
-	source "${HOME}/.bashrc"
-	printf "${GREEN_LIGHT}${BOLD} DONE${STANDARD}.\n\n"
+	# Run the update function with the install argument
+	update install
+	exit 0
 
-}
+fi
 
 draw_line() {
 
@@ -119,67 +215,32 @@ colortest() {
 }
 
 ################################################################################
-# bash color output aliases                                                    #
-################################################################################
-
-BLACK='\e[38;5;16m'
-RED='\e[38;5;1m'
-GREEN='\e[38;5;2m'
-ORANGE='\e[38;5;214m'
-BLUE='\e[38;5;12m'
-BLUE_DARK='\e[38;5;4m'
-PINK='\e[38;5;5m'
-PURPLE='\e[38;5;93m'
-CYAN='\e[38;5;51m'
-GRAY_LIGHT='\e[38;5;188m'
-GRAY='\e[38;5;244m'
-GRAY_DARK='\e[38;5;248m'
-GREEN_LIGHT='\e[38;5;120m'
-YELLOW='\e[38;5;11m'
-YELLOW_LIGHT='\e[38;5;229m'
-BLUE_LIGHT='\e[38;5;14m'
-PURPLE_LIGHT='\e[38;5;177m'
-CYAN_LIGHT='\e[38;5;195m'
-WHITE='\e[38;5;15m'
-STANDARD=$(tput sgr0)
-BOLD='\e[1m'
-ITALIC='\e[3m'
-UNDERLINE='\e[4m'
-STRIKE='\e[9m'
-BLINK='\e[5m'
-DIM='\e[2m'
-
-################################################################################
 # Check if this bashrc file has ever been ran before.                          #
 # If not, make sure the user is notified about the capabilites of this script  #
 # by temporarily enabling notifications for missing supported programs.        #
 ################################################################################
 
-if [ ! -e "${HOME}/.config/bashrc.config" ]; then
+if [ ! -e "${HOME}/.config/run-commander/bashrc.config" ]; then
 
-	mkdir -p "${HOME}/.config/"
-	touch "${HOME}/.config/bashrc.config"
-	chmod +x "${HOME}/.config/bashrc.config"
-	printf "# Change the value below to false to supress startup notifications\n" >> "${HOME}/.config/bashrc.config"
-	printf "NOTIFY_MISSING=true" >> "${HOME}/.config/bashrc.config"
-	printf "\n# Want bash to insult you like the failure you are? Set this to true.\n" >> "${HOME}/.config/bashrc.config"
-	printf "ENABLE_INSULTS=false" >> "${HOME}/.config/bashrc.config"
+	mkdir -p "${HOME}/.config/run-commander/"
+	touch "${HOME}/.config/run-commander/bashrc.config"
+	chmod +x "${HOME}/.config/run-commander/bashrc.config"
+	printf "# Change the value below to false to supress startup notifications\n" >> "${HOME}/.config/run-commander/bashrc.config"
+	printf "NOTIFY_MISSING=true" >> "${HOME}/.config/run-commander/bashrc.config"
+	printf "\n# Want bash to insult you like the failure you are? Set this to true.\n" >> "${HOME}/.config/run-commander/bashrc.config"
+	printf "ENABLE_INSULTS=false" >> "${HOME}/.config/run-commander/bashrc.config"
 
 	draw_line
 	printf "\n\n${PURPLE_LIGHT}To disable notifications for missing programs,\n"
-	printf "edit ${WHITE}${BOLD}${HOME}/.config/bashrc.config${STANDARD}\n\n"
+	printf "edit ${WHITE}${BOLD}${HOME}/.config/run-commander/bashrc.config${STANDARD}\n\n"
 	draw_line
 
 fi
 
 # Source the configuration file
-. "${HOME}/.config/bashrc.config"
+. "${HOME}/.config/run-commander/bashrc.config"
 
-if [[ ! ${EUID} -ne 0 ]]; then
-
-	printf "\n${RED}${BOLD}WARNING:${STANDARD}${WHITE}${BOLD} You are using the root account. It is possible to do irrecoverable damage to your system.${STANDARD}\n\n"
-
-fi
+warn_root
 
 ################################################################################
 # default ubuntu configuration options                                         #
@@ -422,14 +483,14 @@ elif [ "${NOTIFY_MISSING}" == "true" ]; then
 
 fi
 
-if [ -e "${HOME}/.config/LS_COLORS" ]; then
+if [ -e "${HOME}/.config/run-commander/LS_COLORS" ]; then
 
-	eval "$(dircolors -b "${HOME}/.config/LS_COLORS")"
+	eval "$(dircolors -b "${HOME}/.config/run-commander/LS_COLORS")"
 
 else
 
 	printf "\n${PURPLE_LIGHT}Downloading extra list directory colors...${STANDARD}"
-	wget -q "https://raw.github.com/trapd00r/LS_COLORS/master/LS_COLORS" -O "${HOME}/.config/LS_COLORS"
+	wget -q "https://raw.github.com/trapd00r/LS_COLORS/master/LS_COLORS" -O "${HOME}/.config/run-commander/LS_COLORS"
 	printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}\n" && sleep 2
 	rebash
 	printf "${GREEN_LIGHT}${BOLD} DONE.${STANDARD}\n\n"
@@ -461,16 +522,16 @@ fi
 
 if [ "${ENABLE_INSULTS}" == "true" ]; then
 
-	if [ ! -f "${HOME}/.config/bashrc.insults" ]; then
+	if [ ! -f "${HOME}/.config/run-commander/bashrc.insults" ]; then
 
 		printf "\n${PURPLE_LIGHT}Downloading insults...${STANDARD}"
-		wget -q "https://raw.githubusercontent.com/hkbakke/bash-insulter/master/src/bash.command-not-found" -O "${HOME}/.config/bashrc.insults"
+		wget -q "https://raw.githubusercontent.com/hkbakke/bash-insulter/master/src/bash.command-not-found" -O "${HOME}/.config/run-commander/bashrc.insults"
 		printf "${GREEN_LIGHT}${BOLD} DONE${STANDARD}.\n" && sleep 2
 		rebash
 
 	fi
 
-	. "${HOME}/.config/bashrc.insults"
+	. "${HOME}/.config/run-commander/bashrc.insults"
 
 fi
 
