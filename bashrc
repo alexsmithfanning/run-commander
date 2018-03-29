@@ -540,3 +540,5 @@ if [ -d "${HOME}/.qfc" ]; then
 	. "${HOME}/.qfc/bin/qfc.sh"
 
 fi
+
+if [ -f "/usr/bin/direnv" ]; then
