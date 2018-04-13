@@ -55,6 +55,25 @@ rebash() {
 
 }
 
+# Enables easy per-environment loading of variables
+load() {
+
+	local SCRIPTDIR="${HOME}/.config/run-commander/scripts"
+
+	local SCRIPTFILE="${SCRIPTDIR}/${1}"
+
+	if [ -f "${SCRIPTFILE}" ]; then
+
+    	source "${SCRIPTFILE}"
+
+	else
+
+		printf "\n${RED}${BOLD}That environment script does not exist.${STANDARD}\n\n"
+
+	fi
+
+}
+
 # Update the root account's .bashrc easily
 # may be used for other things in the future
 update() {
@@ -542,3 +561,7 @@ if [ -d "${HOME}/.qfc" ]; then
 fi
 
 if [ -f "/usr/bin/direnv" ]; then
+
+	eval "$(direnv hook bash)"
+
+fi
